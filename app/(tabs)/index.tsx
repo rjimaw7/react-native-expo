@@ -1,70 +1,189 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Button,
+  TouchableOpacity,
+} from "react-native";
+import { Link } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import useAccountStore from "@/store/zustand/useAccountStore";
+import { router } from "expo-router";
+import Toast from "react-native-toast-message";
 
 export default function HomeScreen() {
+  // GLOBAL STORE
+  const {
+    hasAccount,
+    firstName,
+    email,
+    gender,
+    childrenList,
+    password,
+    clearFields,
+  } = useAccountStore();
+
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {!hasAccount ? (
+        <TouchableOpacity
+          onPress={() => router.navigate("/register")}
+          style={styles.createAccountButton}
+        >
+          <Text style={styles.createAccountButtonText}>Create An Account</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.userDataContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>First Name:</Text>
+            <Text style={styles.value}>{firstName}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email:</Text>
+            <Text style={styles.value}>{email}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Gender:</Text>
+            <Text style={styles.value}>{gender}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password:</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                value={password}
+                secureTextEntry={!showPassword}
+                editable={false}
+              />
+              <MaterialIcons
+                name={showPassword ? "visibility-off" : "visibility"}
+                size={24}
+                color="#777"
+                onPress={() => setShowPassword(!showPassword)}
+              />
+            </View>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Children List:</Text>
+            {childrenList.map((child, index) => (
+              <TextInput
+                key={index}
+                style={styles.input}
+                value={child}
+                placeholder={`Child ${index + 1}`}
+                editable={false}
+              />
+            ))}
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Edit Account"
+              onPress={() => {
+                router.navigate("/register");
+              }}
+              color="#ffa31a"
+            />
+            <Button
+              title="Delete Account"
+              onPress={() => {
+                clearFields();
+
+                Toast.show({
+                  type: "info",
+                  text1: "Account Deleted",
+                });
+              }}
+              color="#ffa31a"
+            />
+          </View>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userDataContainer: {
+    backgroundColor: "#f0f0f0",
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    width: "80%",
+    alignSelf: "center",
+  },
+  inputContainer: {
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  value: {
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    width: "100%",
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    width: "100%",
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: "column",
+    justifyContent: "space-around",
+    marginTop: 20,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  linkStyle: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#007BFF",
+    color: "#FFFFFF",
+    textAlign: "center",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#007BFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  createAccountButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  createAccountButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#ffa31a",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ffa31a",
+    marginBottom: 10,
   },
 });
